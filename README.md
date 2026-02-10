@@ -1,1 +1,1 @@
-# Gold-Silver-Price-Pridiction
+# Stock-Market-Price-Pridiction
