@@ -1,4 +1,3 @@
-# app.py - Main Flask Application
 from flask import Flask, render_template, jsonify, request
 from flask_cors import CORS
 import pandas as pd
@@ -13,6 +12,7 @@ import plotly.graph_objs as go
 from plotly.utils import PlotlyJSONEncoder
 import warnings
 import os
+import yfinance as yf
 warnings.filterwarnings('ignore')
 
 app = Flask(__name__)
@@ -33,13 +33,68 @@ class IndianGoldPricePredictor:
         self.is_trained = False
         self.dataset_path = 'gold_dataset.csv'
         
-    def create_dataset(self):
-        """Create comprehensive Indian gold price dataset"""
-        print("Creating Indian gold price dataset...")
+    def fetch_gold_data_from_yfinance(self, start_date, end_date):
+        """Fetch gold price data from yfinance"""
+        try:
+            print(f"Fetching gold data from {start_date} to {end_date}...")
+            
+            # Use gold futures (GC=F) or GLD ETF as proxy for gold prices
+            # GC=F is Gold Futures, which is a good proxy for gold prices
+            ticker = "GC=F"  # Gold Futures
+            
+            # Alternative: Use GLD ETF if GC=F doesn't work
+            # ticker = "GLD"
+            
+            gold_data = yf.download(ticker, start=start_date, end=end_date, progress=False)
+            
+            if gold_data.empty:
+                print("No data found for GC=F, trying GLD...")
+                ticker = "GLD"
+                gold_data = yf.download(ticker, start=start_date, end=end_date, progress=False)
+            
+            if gold_data.empty:
+                print("No data found from yfinance, using synthetic data...")
+                return None
+            
+            # Convert to Indian Rupees (assuming 1 USD = 83 INR for conversion)
+            # Gold futures are in USD, convert to INR
+            usd_to_inr = 83  # Approximate conversion rate
+            
+            # Create DataFrame with required columns
+            df = pd.DataFrame({
+                'date': gold_data.index,
+                'close': gold_data['Close'] * usd_to_inr * 10,  # Convert to INR per 10 grams
+                'open': gold_data['Open'] * usd_to_inr * 10,
+                'high': gold_data['High'] * usd_to_inr * 10,
+                'low': gold_data['Low'] * usd_to_inr * 10,
+                'volume': gold_data['Volume']
+            })
+            
+            # Add date features
+            df['day_of_week'] = df['date'].dt.dayofweek
+            df['month'] = df['date'].dt.month
+            df['year'] = df['date'].dt.year
+            
+            # Calculate technical indicators
+            df['returns'] = df['close'].pct_change()
+            df['ma_7'] = df['close'].rolling(window=7).mean()
+            df['ma_15'] = df['close'].rolling(window=15).mean()
+            df['ma_30'] = df['close'].rolling(window=30).mean()
+            
+            # Fill NaN values
+            df = df.bfill().ffill().dropna()
+            
+            print(f"Successfully fetched {len(df)} records from yfinance")
+            return df
+            
+        except Exception as e:
+            print(f"Error fetching from yfinance: {e}")
+            return None
+    
+    def create_synthetic_dataset(self, start_date, end_date):
+        """Create synthetic dataset as fallback if yfinance fails"""
+        print(f"Creating synthetic dataset from {start_date} to {end_date}...")
         
-        # Generate historical data from 2015 to 2024
-        start_date = datetime(2015, 1, 1)
-        end_date = datetime(2026, 12, 31)
         dates = pd.date_range(start=start_date, end=end_date, freq='D')
         
         np.random.seed(42)
@@ -108,19 +163,28 @@ class IndianGoldPricePredictor:
         # Fill NaN values
         df = df.bfill().ffill().dropna()
         
-        # Save to CSV
-        df.to_csv(self.dataset_path, index=False)
-        print(f"Dataset created with {len(df)} records")
+        print(f"Created synthetic dataset with {len(df)} records")
         return df
     
-    def train_model(self):
-        """Train ML models on the dataset"""
+    def train_model(self, start_date=None, end_date=None):
+        """Train ML models on the dataset from specified date range"""
         try:
-            if os.path.exists(self.dataset_path):
-                df = pd.read_csv(self.dataset_path, parse_dates=['date'])
-                print(f"Loaded existing dataset with {len(df)} records")
-            else:
-                df = self.create_dataset()
+            # Set default dates if not provided
+            if start_date is None:
+                start_date = datetime(2015, 1, 1)
+            if end_date is None:
+                end_date = datetime.now()
+            
+            # Try to fetch from yfinance first
+            df = self.fetch_gold_data_from_yfinance(start_date, end_date)
+            
+            # If yfinance fails, create synthetic data
+            if df is None:
+                df = self.create_synthetic_dataset(start_date, end_date)
+            
+            # Save dataset
+            df.to_csv(self.dataset_path, index=False)
+            print(f"Dataset saved to {self.dataset_path}")
             
             feature_columns = ['day_of_week', 'month', 'returns', 'ma_7', 'ma_15', 'ma_30']
             available_features = [col for col in feature_columns if col in df.columns]
@@ -135,6 +199,7 @@ class IndianGoldPricePredictor:
             
             self.is_trained = True
             
+            # Save models
             joblib.dump(self.model_rf, 'gold_model_rf.pkl')
             joblib.dump(self.model_gb, 'gold_model_gb.pkl')
             joblib.dump(self.scaler, 'scaler.pkl')
@@ -183,12 +248,17 @@ class IndianGoldPricePredictor:
 # Initialize predictor
 predictor = IndianGoldPricePredictor()
 
-# Train model on startup
+# Train model on startup with last 5 years of data
 print("=" * 60)
 print("INDIAN GOLD PRICE PREDICTION SYSTEM")
 print("=" * 60)
 print("\nInitializing and training models...")
-predictor.train_model()
+
+# Train with last 5 years of data
+end_date = datetime.now()
+start_date = end_date - timedelta(days=5*365)  # Last 5 years
+predictor.train_model(start_date=start_date, end_date=end_date)
+
 print("\nSystem ready! Starting server...")
 print("=" * 60)
 
@@ -203,6 +273,17 @@ def live_gold():
     try:
         df = pd.read_csv('gold_dataset.csv', parse_dates=['date'])
         latest_price = df['close'].iloc[-1] / 10  # Convert to per gram
+        
+        # Try to get real-time price from yfinance
+        try:
+            ticker = yf.Ticker("GC=F")
+            real_time = ticker.history(period="1d", interval="1m")
+            if not real_time.empty:
+                latest_usd = real_time['Close'].iloc[-1]
+                usd_to_inr = 83
+                latest_price = latest_usd * usd_to_inr
+        except:
+            pass  # Use existing data if real-time fetch fails
         
         # Add some random variation for "live" effect
         current_price = latest_price + np.random.normal(0, 5)
@@ -408,6 +489,26 @@ def graph_data():
         
     except Exception as e:
         print(f"Error in graph_data: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/refresh-data', methods=['POST'])
+def refresh_data():
+    """Refresh dataset with new date range"""
+    try:
+        data = request.json
+        start_date = datetime.strptime(data.get('start_date'), '%Y-%m-%d')
+        end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d')
+        
+        # Train model with new date range
+        success = predictor.train_model(start_date=start_date, end_date=end_date)
+        
+        if success:
+            return jsonify({'success': True, 'message': 'Data refreshed successfully'})
+        else:
+            return jsonify({'success': False, 'message': 'Failed to refresh data'}), 500
+            
+    except Exception as e:
+        print(f"Error in refresh_data: {e}")
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
