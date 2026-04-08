@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gold Price Prediction</title>
+    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Poppins:wght@300;400;500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <section class="hero">
+
+        <div class="hero-left">
+
+            <h1 class="main-title">
+                GOLD PRICE <br> PREDICTION
+            </h1>
+
+            <p class="subtitle">
+                Premium Gold Price Analytics Platform
+            </p>
+
+            <div class="glass-card">
+                <input type="email" placeholder="USERNAME/EMAIL">
+                <input type="password" placeholder="PASSWORD">
+                <button onclick="showHome()">CREATE ACCOUNT</button>
+
+            </div>
+
+        </div>
+
+        <div class="hero-right">
+            <img src="images/statue.png" alt="Statue">
+        </div>
+
+
+    </section>
+
+    <div class="nav-pills fixed-nav" id="mainNav" style="display:none;">
+
+        <a href="#homePage">HOME</a>
+        <a href="#Pridiction">Gold Price Pridiction</a>
+        <a href="#About">About</a>
+    </div>
+
+
+    <!-- ================= HOME / TODAY PRICE SECTION ================= -->
+
+    <section class="home-section" id="homePage" style="display:none;">
+
+        <!-- LEFT IMAGE -->
+        <div class="home-left">
+            <img src="images/gold.png" alt="Gold Stone">
+        </div>
+
+        <!-- RIGHT CONTENT -->
+        <div class="home-right">
+            <h2 class="home-title">
+                Last Pridiction
+            </h2>
+
+            <p class="home-date">
+                {{Date}}
+            </p>
+
+            <div class="price-card">
+                <p> ₹ {{lastpridiction}} / g</p>
+            </div>
+
+            <p class="home-description">
+                Gold prices have shown a movement compared to the previous trading session.
+                The fluctuation reflects short-term market activity influenced by current demand and trading trends.
+            </p>
+
+        </div>
+
+    </section>
+
+    <!-- ================= Pridiction ================= -->
+
+    <section class="Pridiction" id="forecastSection" style="display:none;">
+
+        <!-- LEFT IMAGE -->
+        <div class="forecast-left">
+            <img src="images/angel.png" alt="Angel Statue">
+        </div>
+
+        <!-- RIGHT CONTENT -->
+        <div class="forecast-right">
+
+            <h2 class="forecast-title">
+                Gold Price Pridiction
+            </h2>
+
+            <div class="forecast-card">
+                <input type="date">
+                <select>
+                    <option value="1">1 Day</option>
+                    <option value="7">1 Week</option>
+                    <option value="30">1 Month</option>
+                </select>
+                <button>PREDICT PRICE</button>
+            </div>
+
+            <!-- 🔥 MOVE THESE INSIDE -->
+            <div class="forecast-stats">
+
+                <div class="stat-box">
+                    <h3>Expected High</h3>
+                    <p>₹ 6,420</p>
+                </div>
+
+                <div class="stat-box">
+                    <h3>Expected Low</h3>
+                    <p>₹ 6,180</p>
+                </div>
+
+                <div class="stat-box">
+                    <h3>Volatility</h3>
+                    <p>Moderate</p>
+                </div>
+
+            </div>
+
+            <div class="trend-indicator trend-up">
+                ▲ Market Expected to Rise
+            </div>
+
+            <div class="trend-indicator trend-down">
+                ▼ Market Expected to Decline
+            </div>
+
+            <p class="forecast-text">
+                Gold price on {{selected_date}} is projected at ₹ {{predicted_price}} per gram.
+                The forecast indicates a {{predicted_trend}} movement based on historical data modeling.
+            </p>
+
+        </div>
+
+    </section>
+
+    <<section class="trends-section" id="trendsSection" style="display:none;">
+
+        <!-- LEFT SIDE -->
+        <div class="trends-left">
+
+            <!-- GRAPH -->
+            <div id="graph-container">
+                <!-- Backend graph will render here -->
+            </div>
+
+            <!-- MINI STATS (Graph ke neeche) -->
+            <div class="trend-mini-stats">
+                <div class="mini-stat">
+                    <span>7D Change</span>
+                    <strong>+1.8%</strong>
+                </div>
+
+                <div class="mini-stat">
+                    <span>15D Change</span>
+                    <strong>-0.6%</strong>
+                </div>
+
+                <div class="mini-stat">
+                    <span>Year High</span>
+                    <strong>₹ 6,520</strong>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="trends-right">
+
+            <div class="trends-title-box">
+                <h2 class="trends-title">TRENDS ANALYSIS</h2>
+            </div>
+
+            <div class="trend-badge">
+                Bullish Momentum
+            </div>
+
+            <p class="trends-text">
+                Trend Analysis – {{selected_period}}<br>
+                Gold prices have shown an overall {{trend_direction}} movement during this period.
+                The graph indicates a {{trend_nature}} shift in price levels across the selected timeframe.
+            </p>
+
+        </div>
+
+        </section>
+
+        <!-- ================= CALCULATOR SECTION ================= -->
+
+        <section class="calculator-section" id="calculatorSection" style="display:none;">
+
+
+            <!-- RIGHT CONTENT -->
+            <div class="calculator-right">
+
+
+                <h2 class="calculator-title">
+                    Gold Value Estimator
+                </h2>
+
+                <div class="calculator-card">
+
+                    <select id="puritySelect">
+                        <option value="24">24K</option>
+                        <option value="22">22K</option>
+                        <option value="18">18K</option>
+                    </select>
+
+                    <!-- WEIGHT CONTROLLER -->
+                    <div class="weight-control">
+
+                        <input type="range" min="1" max="200" value="10" id="goldSlider">
+
+                        <div class="weight-box">
+                            <button type="button" id="minusBtn">−</button>
+                            <input type="number" id="weightInput" value="10" min="1" max="200">
+                            <button type="button" id="plusBtn">+</button>
+                            <span class="gm-text">gm</span>
+                        </div>
+
+                    </div>
+
+                    <div class="result-box">
+                        ₹ <span id="totalPrice">0</span>
+                    </div>
+
+                </div>
+
+
+            </div>
+
+            </div>
+
+            <p class="calculator-text">
+                Enter the gold weight and select purity to calculate the estimated market value instantly.
+                The calculation is based on the latest available gold price data.
+            </p>
+
+            </div>
+
+        </section>
+
+
+
+        <script>
+
+            function showHome() {
+
+                const hero = document.querySelector(".hero");
+                const homeSection = document.getElementById("homePage");
+
+                hero.classList.add("hide-hero");
+
+                setTimeout(() => {
+
+                    hero.style.display = "none";
+
+                    document.getElementById("homePage").style.display = "flex";
+                    document.getElementById("forecastSection").style.display = "flex";
+                    document.getElementById("trendsSection").style.display = "flex";
+                    document.getElementById("calculatorSection").style.display = "flex";
+                    document.getElementById("mainNav").style.display = "flex";
+
+                    homeSection.scrollIntoView({
+                        behavior: "smooth"
+                    });
+
+                }, 800);
+            }
+        </script>
+
+        <div class="cursor-glow"></div>
+
+        <script>
+            const glow = document.querySelector(".cursor-glow");
+
+            document.addEventListener("mousemove", (e) => {
+                glow.style.left = e.clientX + "px";
+                glow.style.top = e.clientY + "px";
+            });
+        </script>
+
+        <script>
+
+            const slider = document.getElementById("goldSlider");
+            const weightInput = document.getElementById("weightInput");
+            const minusBtn = document.getElementById("minusBtn");
+            const plusBtn = document.getElementById("plusBtn");
+            const puritySelect = document.getElementById("puritySelect");
+            const totalPrice = document.getElementById("totalPrice");
+
+            function calculatePrice() {
+                let weight = parseInt(weightInput.value);
+                let purity = puritySelect.value;
+
+                let rate = 0;
+
+                if (purity == 24) rate = 6200;
+                if (purity == 22) rate = 5800;
+                if (purity == 18) rate = 4800;
+
+                totalPrice.textContent = weight * rate;
+            }
+
+            slider.addEventListener("input", () => {
+                weightInput.value = slider.value;
+                calculatePrice();
+            });
+
+            weightInput.addEventListener("input", () => {
+                slider.value = weightInput.value;
+                calculatePrice();
+            });
+
+            plusBtn.addEventListener("click", () => {
+                weightInput.value++;
+                slider.value = weightInput.value;
+                calculatePrice();
+            });
+
+            minusBtn.addEventListener("click", () => {
+                if (weightInput.value > 1) {
+                    weightInput.value--;
+                    slider.value = weightInput.value;
+                    calculatePrice();
+                }
+            });
+
+            puritySelect.addEventListener("change", calculatePrice);
+
+            calculatePrice();
+
+        </script>
+
+
+
+
+</body>
+
+</html>
