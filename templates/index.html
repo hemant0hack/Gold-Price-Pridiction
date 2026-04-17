@@ -6,136 +6,208 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gold Price Prediction</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Poppins:wght@300;400;500&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
-    <div class="hero">
+
+    <section class="hero">
+
         <div class="hero-left">
+
             <h1 class="main-title">
-                GOLD PRICE<br> PREDICTION
+                GOLD PRICE <br> PREDICTION
             </h1>
+
             <p class="subtitle">
-                Premium gold price analytics platform.
+                Premium Gold Price Analytics Platform
             </p>
+
             <div class="glass-card">
-                <input type="email" placeholder="USERNAME/EMAIL">
-                <input type="password" placeholder="PASSWORD">
-                <button type="button" onclick="showHome()">CREATE ACCOUNT</button>
+                <button onclick="showHome()">GET STARTED</button>
             </div>
+
         </div>
 
         <div class="hero-right">
-            <div class="hero-artwork"></div>
+            <img src="{{ url_for('images', filename='statue.png') }}" alt="Statue">
         </div>
-    </div>
 
-    <div class="nav-pills fixed-nav" id="mainNav">
+
+    </section>
+
+    <div class="nav-pills fixed-nav" id="mainNav" style="display:none;">
+
         <a href="#homePage">HOME</a>
-        <a href="#forecastSection">Gold Prediction</a>
+        <a href="#forecastSection">Gold Price Prediction</a>
+        <a href="#About">About</a>
     </div>
 
-    <section class="home-section" id="homePage">
+
+    <!-- ================= HOME / TODAY PRICE SECTION ================= -->
+
+    <section class="home-section" id="homePage" style="display:none;">
+
+        <!-- LEFT IMAGE -->
         <div class="home-left">
-            <div class="home-artwork"></div>
+            <img src="{{ url_for('images', filename='gold.png') }}" alt="Gold Stone">
         </div>
 
+        <!-- RIGHT CONTENT -->
         <div class="home-right">
-            <h2 class="home-title">
-                Last Prediction
-            </h2>
-
-            <p class="home-date">
-                {{ Date or 'Today' }}
-            </p>
-
-            <div class="price-card">
-                <p>₹ {{ lastpridiction or '0.00' }} / g</p>
+            <div class="premium-box">
+                <h2 class="home-title" style="font-size: 40px; text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);">Our
+                    Prediction Model</h2>
+                <p class="home-description" style="margin-bottom: 20px;">
+                    Our platform uses advanced Machine Learning techniques to predict future gold prices. Specifically,
+                    we employ a <strong style="color: #f5d76e;">Random Forest Regressor</strong> combined with a <strong
+                        style="color: #f5d76e;">Linear Regression</strong> trend model to ensure high accuracy and
+                    account for long-term market trends.
+                </p>
+                <p class="home-description">
+                    The model is trained on historical daily gold prices, incorporating seasonal patterns and long-term
+                    momentum to provide you with the most reliable forecasts.
+                </p>
             </div>
-
-            <p class="home-description">
-                Gold prices have shown movement compared to the previous trading session.
-                The fluctuation reflects short-term market activity influenced by demand and trading trends.
-            </p>
         </div>
     </section>
 
-    <section class="forecast-section" id="forecastSection">
+    <!-- ================= Prediction ================= -->
+
+    <section class="Prediction" id="forecastSection" style="display:none;">
+
+        <!-- LEFT IMAGE -->
         <div class="forecast-left">
-            <div class="forecast-artwork"></div>
+            <img src="{{ url_for('images', filename='angel.png') }}" alt="Angel Statue">
         </div>
 
+        <!-- RIGHT CONTENT -->
         <div class="forecast-right">
+
             <h2 class="forecast-title">
                 Gold Price Prediction
             </h2>
 
-            <form class="forecast-card" action="/predict" method="POST">
-                <input type="date" name="date" aria-label="Prediction date" value="{{ selected_date or '' }}" required>
-                <select name="period" aria-label="Prediction period">
-                    <option value="1" {% if selected_period=='1 Day' %}selected{% endif %}>1 Day</option>
-                    <option value="7" {% if selected_period=='1 Week' %}selected{% endif %}>1 Week</option>
-                    <option value="30" {% if selected_period=='1 Month' %}selected{% endif %}>1 Month</option>
-                </select>
-                <button type="submit">PREDICT PRICE</button>
-            </form>
+            <div class="forecast-card">
+                <form action="/predict" method="POST" style="display: flex; flex-direction: column; gap: 15px;">
+                    <input type="text" name="date" placeholder="Enter Year (e.g. 2025) or Date (YYYY-MM-DD)"
+                        value="{{ selected_date if selected_date else '' }}" required>
+                    {% if error %}
+                    <p style="color: #ff6b6b; font-size: 14px; margin-top: -5px; font-style: italic;">{{ error }}</p>
+                    {% endif %}
+                    <button type="submit">Prediction</button>
+                </form>
+            </div>
 
-            {% if error %}
-            <div class="error-box">{{ error }}</div>
-            {% endif %}
-
+            <!-- 🔥 MOVE THESE INSIDE -->
+            {% if predicted_price %}
             <div class="forecast-stats">
+
                 <div class="stat-box">
-                    <h3>Expected High</h3>
-                    <p>₹ {{ predicted_price or '0.00' }}</p>
+                    <h3>Predicted Value</h3>
+                    <p>₹ {{ predicted_price }}</p>
                 </div>
+
                 <div class="stat-box">
-                    <h3>Expected Low</h3>
-                    <p>₹ {{ predicted_price or '0.00' }}</p>
+                    <h3>Model Accuracy</h3>
+                    <p>{{ '%.2f'|format(accuracy_score * 100 if accuracy_score is not none else 0) }}%</p>
                 </div>
-                <div class="stat-box">
-                    <h3>Volatility</h3>
-                    <p>Moderate</p>
-                </div>
+
             </div>
 
-            {% if accuracy_score is not none %}
-            <div class="accuracy-grid">
-                <div class="accuracy-card">
-                    <span>Model R²</span>
-                    <strong>{{ '%.2f'|format(accuracy_score * 100) }}%</strong>
-                </div>
-                <div class="accuracy-card">
-                    <span>MAPE</span>
-                    <strong>{{ '%.2f'|format(mape) }}%</strong>
-                </div>
-            </div>
+            <p class="forecast-text">
+                Gold price on <strong>{{ selected_date }}</strong> is projected at <strong>₹ {{ predicted_price
+                    }}</strong> per gram.
+            </p>
             {% endif %}
+
         </div>
+
+    </section>
+
+
+
+
+
+    <!-- ================= ABOUT SECTION ================= -->
+
+    <section class="about-section" id="About" style="display:none;">
+
+        <div class="about-content premium-box" style="margin: 0 auto; max-width: 850px;">
+            <h2 class="about-title">About Gold Price Prediction</h2>
+            <p class="about-text">
+                Our Gold Price Prediction platform leverages advanced machine learning algorithms to provide accurate
+                forecasts of gold prices. Using historical data and market trends, we help investors and enthusiasts
+                make informed decisions.
+            </p>
+            <p class="about-text" style="margin-bottom: 0;">
+                Features include real-time predictions. Built with <strong style="color: #f5d76e;">Flask</strong>
+                and powered by <strong style="color: #f5d76e;">scikit-learn</strong> models for reliable insights.
+            </p>
+        </div>
+
     </section>
 
     <script>
         function showHome() {
-            const hero = document.querySelector('.hero');
-            hero.classList.add('hide-hero');
+
+            const hero = document.querySelector(".hero");
+            const homeSection = document.getElementById("homePage");
+
+            hero.classList.add("hide-hero");
+
             setTimeout(() => {
-                hero.style.display = 'none';
-                document.getElementById('homePage').style.display = 'flex';
-                document.getElementById('forecastSection').style.display = 'flex';
-                document.getElementById('mainNav').style.display = 'flex';
-                document.getElementById('homePage').scrollIntoView({ behavior: 'smooth' });
-            }, 600);
+
+                hero.style.display = "none";
+
+                document.getElementById("homePage").style.display = "flex";
+                document.getElementById("forecastSection").style.display = "flex";
+                document.getElementById("About").style.display = "flex";
+                document.getElementById("mainNav").style.display = "flex";
+
+                homeSection.scrollIntoView({
+                    behavior: "smooth"
+                });
+
+            }, 800);
         }
     </script>
 
     <div class="cursor-glow"></div>
 
     <script>
-        const glow = document.querySelector('.cursor-glow');
-        document.addEventListener('mousemove', (e) => {
-            glow.style.left = e.clientX + 'px';
-            glow.style.top = e.clientY + 'px';
+        const glow = document.querySelector(".cursor-glow");
+
+        document.addEventListener("mousemove", (e) => {
+            glow.style.left = e.clientX + "px";
+            glow.style.top = e.clientY + "px";
         });
     </script>
+
+    {% if predicted_price or error %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelector(".hero").style.display = "none";
+            document.getElementById("homePage").style.display = "flex";
+            document.getElementById("forecastSection").style.display = "flex";
+            document.getElementById("About").style.display = "flex";
+            document.getElementById("mainNav").style.display = "flex";
+
+            setTimeout(() => {
+                document.getElementById("forecastSection").scrollIntoView({
+                    behavior: "smooth"
+                });
+            }, 100);
+        });
+    </script>
+    {% endif %}
+
+
+
+
+
 
 </body>
 

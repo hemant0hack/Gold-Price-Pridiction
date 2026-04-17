@@ -1,4 +1,5 @@
-from flask import Flask, request, render_template, jsonify
+import os
+from flask import Flask, request, render_template, jsonify, send_from_directory
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
@@ -11,6 +12,10 @@ import warnings
 warnings.filterwarnings('ignore')
 
 app = Flask(__name__)
+
+@app.route('/images/<path:filename>')
+def images(filename):
+    return send_from_directory(os.path.join(app.root_path, 'images'), filename)
 
 # Global variables for models
 model = None
@@ -27,7 +32,7 @@ def train_models():
     
     try:
         # Load data
-        gold_data = pd.read_csv("gold_price.csv")
+        gold_data = pd.read_csv("Gold Price.csv")
         
         # Convert Date to datetime
         gold_data['Date'] = pd.to_datetime(gold_data['Date'])
@@ -68,31 +73,31 @@ def train_models():
         model_accuracy = model.score(X_test, y_test)
         model_mape = np.mean(np.abs((y_test - y_pred) / y_test)) * 100
         
-        print("✅ Models trained successfully!")
-        print(f"📊 Data range: {min_year} to {max_year}")
-        print(f"💰 Average gold price: ${y.mean():.2f}")
-        print(f"📈 Test R² score: {model_accuracy:.3f}")
-        print(f"🎯 Test MAPE: {model_mape:.2f}%")
+        print("[OK] Models trained successfully!")
+        print(f"[INFO] Data range: {min_year} to {max_year}")
+        print(f"[INFO] Average gold price: ${y.mean():.2f}")
+        print(f"[INFO] Test R² score: {model_accuracy:.3f}")
+        print(f"[INFO] Test MAPE: {model_mape:.2f}%")
         
     except Exception as e:
-        print(f"❌ Error training models: {e}")
+        print(f"[ERROR] Error training models: {e}")
 
 def predict_gold_price(date_input):
     """Predict gold price based on date input"""
     try:
-        print(f"🔍 Predicting for: {date_input}")
+        print(f"[INFO] Predicting for: {date_input}")
         
         # Parse input
         if len(str(date_input)) == 4 and str(date_input).isdigit():
             date_obj = datetime(int(date_input), 6, 15)
-            print(f"📅 Parsed as year: {date_obj.year}")
+            print(f"[INFO] Parsed as year: {date_obj.year}")
         else:
             date_obj = pd.to_datetime(date_input)
-            print(f"📅 Parsed as date: {date_obj}")
+            print(f"[INFO] Parsed as date: {date_obj}")
         
         # Calculate year weight (clamp between 0 and 1)
         if min_year is None or max_year is None:
-            print("❌ min_year or max_year is None")
+            print("[ERROR] min_year or max_year is None")
             return None, None
         if date_obj.year <= min_year:
             year_weight = 0
@@ -111,31 +116,31 @@ def predict_gold_price(date_input):
             year_weight
         ]], columns=['Year', 'Month', 'Day', 'DayOfYear', 'Quarter', 'YearWeight'])
         
-        print(f"📊 Input features: {input_data.values[0]}")
+        print(f"[INFO] Input features: {input_data.values[0]}")
         
         # Get prediction
         if model is None:
-            print("❌ Model is not trained.")
+            print("[ERROR] Model is not trained.")
             return None, None
         model_prediction = model.predict(input_data)[0]
-        print(f"🤖 Model prediction: ${model_prediction:.2f}")
+        print(f"[INFO] Model prediction: ${model_prediction:.2f}")
 
         # Apply trend adjustment for future years
         if date_obj.year > max_year:
             if trend_model is None:
-                print("❌ Trend model is not trained.")
+                print("[ERROR] Trend model is not trained.")
                 return None, None
             trend_value = trend_model.predict([[date_obj.year]])[0]
             final_prediction = (model_prediction + trend_value) / 2
-            print(f"📈 Future year adjustment: ${trend_value:.2f}")
+            print(f"[INFO] Future year adjustment: ${trend_value:.2f}")
         else:
             final_prediction = model_prediction
 
-        print(f"✅ Final prediction: ${final_prediction:.2f}")
+        print(f"[OK] Final prediction: ${final_prediction:.2f}")
         return final_prediction, date_obj
         
     except Exception as e:
-        print(f"❌ Prediction error: {e}")
+        print(f"[ERROR] Prediction error: {e}")
         return None, None
 
 # Train models when server starts
@@ -155,7 +160,6 @@ def home():
         Date=None,
         lastpridiction=None,
         selected_date=None,
-        selected_period='1 Day',
         predicted_price=None,
         predicted_trend=None,
         trend_direction='upward',
@@ -169,7 +173,6 @@ def predict():
     try:
         # Get date from form
         date_input = request.form.get('date')
-        period = request.form.get('period', '1')
 
         if not date_input:
             return render_template(
@@ -180,19 +183,11 @@ def predict():
                 Date=None,
                 lastpridiction=None,
                 selected_date=None,
-                selected_period='1 Day',
                 predicted_price=None,
                 predicted_trend=None,
                 trend_direction='upward',
                 trend_nature='stable'
             )
-
-        if period == '7':
-            selected_period = '1 Week'
-        elif period == '30':
-            selected_period = '1 Month'
-        else:
-            selected_period = '1 Day'
 
         prediction, date_obj = predict_gold_price(date_input)
 
@@ -211,7 +206,6 @@ def predict():
                 Date=formatted_date,
                 lastpridiction=f"{round(prediction, 2):.2f}",
                 selected_date=date_input,
-                selected_period=selected_period,
                 predicted_price=f"{round(prediction, 2):.2f}",
                 predicted_trend=trend_nature,
                 trend_direction=trend_direction,
@@ -229,7 +223,6 @@ def predict():
             Date=None,
             lastpridiction=None,
             selected_date=date_input,
-            selected_period=selected_period,
             predicted_price=None,
             predicted_trend=None,
             trend_direction='upward',
@@ -245,7 +238,6 @@ def predict():
             Date=None,
             lastpridiction=None,
             selected_date=date_input if 'date_input' in locals() else None,
-            selected_period='1 Day',
             predicted_price=None,
             predicted_trend=None,
             trend_direction='upward',
