@@ -1292,7 +1292,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   border: 1px solid rgba(212, 175, 55, 0.15);
   padding: 45px;
   border-radius: 30px;
-  box-shadow: 
+  box-shadow:
     0 25px 50px rgba(0, 0, 0, 0.5),
     inset 0 0 20px rgba(255, 255, 255, 0.02);
   transition: all 0.4s ease;
@@ -1303,17 +1303,27 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .premium-box::before {
   content: "";
   position: absolute;
-  top: 0; left: -100%;
-  width: 50%; height: 100%;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
   background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.05), transparent);
   transform: skewX(-20deg);
   animation: shineGlass 6s infinite;
 }
 
 @keyframes shineGlass {
-  0% { left: -100%; }
-  20% { left: 200%; }
-  100% { left: 200%; }
+  0% {
+    left: -100%;
+  }
+
+  20% {
+    left: 200%;
+  }
+
+  100% {
+    left: 200%;
+  }
 }
 
 .premium-box:hover {
@@ -1323,12 +1333,21 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 /* ===== Animations Enhancement ===== */
-.forecast-card button, .glass-card button {
+.forecast-card button,
+.glass-card button {
   animation: pulseGold 3s infinite;
 }
 
 @keyframes pulseGold {
-  0% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
-  50% { box-shadow: 0 0 35px rgba(212, 175, 55, 0.8); }
-  100% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
+  0% {
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 35px rgba(212, 175, 55, 0.8);
+  }
+
+  100% {
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+  }
 }

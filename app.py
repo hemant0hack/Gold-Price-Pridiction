@@ -8,6 +8,12 @@ from sklearn.model_selection import train_test_split
 from datetime import datetime
 import warnings
 
+import warnings
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import io
+from flask import send_file
 
 warnings.filterwarnings('ignore')
 
@@ -70,14 +76,14 @@ def train_models():
 
         # Evaluate model performance
         y_pred = model.predict(X_test)
-        model_accuracy = model.score(X_test, y_test)
+        model_r2 = model.score(X_test, y_test)
         model_mape = np.mean(np.abs((y_test - y_pred) / y_test)) * 100
+        model_accuracy = 100 - model_mape
         
         print("[OK] Models trained successfully!")
         print(f"[INFO] Data range: {min_year} to {max_year}")
-        print(f"[INFO] Average gold price: ${y.mean():.2f}")
-        print(f"[INFO] Test R² score: {model_accuracy:.3f}")
-        print(f"[INFO] Test MAPE: {model_mape:.2f}%")
+        print(f"[INFO] Average gold price: ₹{y.mean():.2f}")
+        print(f"[INFO] Test Accuracy: {model_accuracy:.2f}%")
         
     except Exception as e:
         print(f"[ERROR] Error training models: {e}")
@@ -123,7 +129,7 @@ def predict_gold_price(date_input):
             print("[ERROR] Model is not trained.")
             return None, None
         model_prediction = model.predict(input_data)[0]
-        print(f"[INFO] Model prediction: ${model_prediction:.2f}")
+        print(f"[INFO] Model prediction: ₹{model_prediction:.2f}")
 
         # Apply trend adjustment for future years
         if date_obj.year > max_year:
@@ -132,11 +138,11 @@ def predict_gold_price(date_input):
                 return None, None
             trend_value = trend_model.predict([[date_obj.year]])[0]
             final_prediction = (model_prediction + trend_value) / 2
-            print(f"[INFO] Future year adjustment: ${trend_value:.2f}")
+            print(f"[INFO] Future blend — trend weight: 0.5, trend value: ₹{trend_value:.2f}")
         else:
             final_prediction = model_prediction
 
-        print(f"[OK] Final prediction: ${final_prediction:.2f}")
+        print(f"[OK] Final prediction: ₹{final_prediction:.2f}")
         return final_prediction, date_obj
         
     except Exception as e:
@@ -254,7 +260,7 @@ def predict_api_get(date):
             'success': True,
             'date': date,
             'predicted_price': round(prediction, 2),
-            'currency': 'USD',
+            'currency': 'INR',
             'model_accuracy': round(model_accuracy, 4) if model_accuracy is not None else None,
             'model_mape': round(model_mape, 2) if model_mape is not None else None
         })
@@ -263,6 +269,121 @@ def predict_api_get(date):
             'success': False,
             'error': 'Invalid date format. Use YYYY or YYYY-MM-DD'
         }), 400
+
+@app.route('/plot')
+def plot_graph():
+    if gold_data is None or model is None:
+        return "Model not trained yet", 400
+    
+    fig, ax = plt.subplots(figsize=(10, 5))
+    
+    # Plot historical price
+    ax.plot(gold_data['Date'], gold_data['GLD'], label='Historical GLD Price', color='#f5d76e')
+    
+    # Plot generated fit by model
+    X_all = gold_data[['Year', 'Month', 'Day', 'DayOfYear', 'Quarter', 'YearWeight']]
+    y_pred_all = model.predict(X_all)
+    ax.plot(gold_data['Date'], y_pred_all, label='Random Forest Fit', color='#ffffff', alpha=0.5, linestyle='--')
+    
+    ax.set_title("Gold Price Model: Historical Prediction", color='white', pad=15)
+    ax.set_xlabel("Date", color='white')
+    ax.set_ylabel("Price (INR)", color='white')
+    ax.legend(facecolor='#1e1e1e', edgecolor='white', labelcolor='white')
+    
+    # Dark theme styling
+    fig.patch.set_facecolor('#1a1a1a')
+    ax.set_facecolor('#1a1a1a')
+    ax.tick_params(colors='white')
+    for spine in ax.spines.values():
+        spine.set_edgecolor('gray')
+    ax.grid(color='gray', linestyle='--', alpha=0.3)
+    
+    img = io.BytesIO()
+    plt.savefig(img, format='png', bbox_inches='tight', facecolor=fig.get_facecolor())
+    img.seek(0)
+    plt.close(fig)
+    
+    return send_file(img, mimetype='image/png')
+
+@app.route('/plot_predict/<date>')
+def plot_predict(date):
+    if gold_data is None or model is None:
+        return "Model not trained yet", 400
+    
+    try:
+        if len(str(date)) == 4 and str(date).isdigit():
+            date_obj = datetime(int(date), 1, 1)
+        else:
+            date_obj = pd.to_datetime(date)
+    except:
+        date_obj = datetime.now()
+    
+    target_year = date_obj.year
+
+    # ---- HISTORICAL: yearly average from dataset ----
+    yearly_avg = gold_data.groupby('Year')['GLD'].mean()
+    hist_years = list(yearly_avg.index)
+    hist_prices = list(yearly_avg.values)
+
+    # ---- PREDICTED: model prediction for each year min_year → target_year ----
+    year_range_full = list(range(min_year, target_year + 1))
+    pred_prices = []
+
+    for yr in year_range_full:
+        yw = (yr - min_year) / (max_year - min_year)
+        d = datetime(yr, 6, 15)
+        input_data = pd.DataFrame([[
+            yr, 6, 15, d.timetuple().tm_yday, 2, yw
+        ]], columns=['Year', 'Month', 'Day', 'DayOfYear', 'Quarter', 'YearWeight'])
+        pred = model.predict(input_data)[0]
+        if yr > max_year and trend_model is not None:
+            years_ahead = yr - max_year
+            tw = min(0.9, 0.3 + years_ahead * 0.08)
+            trend_val = trend_model.predict([[yr]])[0]
+            pred = (pred * (1 - tw)) + (trend_val * tw)
+        pred_prices.append(pred)
+
+    # ---- PLOT ----
+    fig, ax = plt.subplots(figsize=(12, 5))
+    ax.plot(hist_years, hist_prices, marker='o', color='#888888',
+            linestyle='-', linewidth=2, markersize=5, label='Historical Avg')
+    ax.plot(year_range_full, pred_prices, marker='o', color='#f5d76e',
+            linestyle='-', linewidth=2, markersize=5, label='Model Prediction')
+
+    # Highlight the target year
+    ax.scatter([target_year], [pred_prices[-1]], color='white', edgecolor='#f5d76e',
+               s=180, zorder=5, linewidth=2)
+    ax.annotate(f"₹{pred_prices[-1]:,.2f}",
+                (target_year, pred_prices[-1]),
+                textcoords="offset points", xytext=(0, 16),
+                ha='center', color='white', fontsize=10, fontweight='bold',
+                bbox=dict(boxstyle="round,pad=0.4", fc="#111111", ec="#f5d76e", lw=1.5))
+
+    # Dashed vertical line at max_year (historical ends, forecast begins)
+    if target_year > max_year:
+        ax.axvline(x=max_year, color='gray', linestyle='--', alpha=0.5, linewidth=1)
+        ax.text(max_year + 0.1, min(pred_prices) * 0.995, 'Forecast →',
+                color='#aaa', fontsize=9, va='bottom')
+
+    ax.set_title(f"Gold Price: Historical vs Predicted (Up to {target_year})", color='white', pad=20)
+    ax.set_xlabel("Year", color='white')
+    ax.set_ylabel("Price (INR)", color='white')
+    ax.legend(facecolor='#1e1e1e', edgecolor='#f5d76e', labelcolor='white', fontsize=10)
+
+    fig.patch.set_facecolor('#1a1a1a')
+    ax.set_facecolor('#1a1a1a')
+    ax.tick_params(colors='white')
+    ax.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    for spine in ax.spines.values():
+        spine.set_edgecolor('gray')
+    ax.grid(color='gray', linestyle='--', alpha=0.3)
+
+    img = io.BytesIO()
+    plt.savefig(img, format='png', bbox_inches='tight', facecolor=fig.get_facecolor())
+    img.seek(0)
+    plt.close(fig)
+
+    return send_file(img, mimetype='image/png')
 
 if __name__ == '__main__':
     app.run(debug=True, host='127.0.0.1', port=5000)

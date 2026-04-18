@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,64 +32,16 @@
         </div>
 
         <div class="hero-right">
-<<<<<<< HEAD
             <img src="{{ url_for('images', filename='statue.png') }}" alt="Statue">
-=======
-            <img src="images/statue.png" alt="Statue">
->>>>>>> 9c96c2ba225c021c6772126468f5d9f51e6d50ba
         </div>
 
 
     </section>
 
     <div class="nav-pills fixed-nav" id="mainNav" style="display:none;">
-
-        <a href="#homePage">HOME</a>
         <a href="#forecastSection">Gold Price Prediction</a>
-        <a href="#About">About</a>
     </div>
 
-
-    <!-- ================= HOME / TODAY PRICE SECTION ================= -->
-
-    <section class="home-section" id="homePage" style="display:none;">
-
-        <!-- LEFT IMAGE -->
-        <div class="home-left">
-<<<<<<< HEAD
-            <img src="{{ url_for('images', filename='gold.png') }}" alt="Gold Stone">
-=======
-            <img src="images/gold.png" alt="Gold Stone">
->>>>>>> 9c96c2ba225c021c6772126468f5d9f51e6d50ba
-        </div>
-
-        <!-- RIGHT CONTENT -->
-        <div class="home-right">
-            <div class="premium-box">
-<<<<<<< HEAD
-                <h2 class="home-title" style="font-size: 40px; text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);">Our
-                    Prediction Model</h2>
-                <p class="home-description" style="margin-bottom: 20px;">
-                    Our platform uses advanced Machine Learning techniques to predict future gold prices. Specifically,
-                    we employ a <strong style="color: #f5d76e;">Random Forest Regressor</strong> combined with a <strong
-                        style="color: #f5d76e;">Linear Regression</strong> trend model to ensure high accuracy and
-                    account for long-term market trends.
-                </p>
-                <p class="home-description">
-                    The model is trained on historical daily gold prices, incorporating seasonal patterns and long-term
-                    momentum to provide you with the most reliable forecasts.
-=======
-                <h2 class="home-title" style="font-size: 40px; text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);">Our Prediction Model</h2>
-                <p class="home-description" style="margin-bottom: 20px;">
-                    Our platform uses advanced Machine Learning techniques to predict future gold prices. Specifically, we employ a <strong style="color: #f5d76e;">Random Forest Regressor</strong> combined with a <strong style="color: #f5d76e;">Linear Regression</strong> trend model to ensure high accuracy and account for long-term market trends.
-                </p>
-                <p class="home-description">
-                    The model is trained on historical daily gold prices, incorporating seasonal patterns and long-term momentum to provide you with the most reliable forecasts.
->>>>>>> 9c96c2ba225c021c6772126468f5d9f51e6d50ba
-                </p>
-            </div>
-        </div>
-    </section>
 
     <!-- ================= Prediction ================= -->
 
@@ -96,11 +49,7 @@
 
         <!-- LEFT IMAGE -->
         <div class="forecast-left">
-<<<<<<< HEAD
             <img src="{{ url_for('images', filename='angel.png') }}" alt="Angel Statue">
-=======
-            <img src="images/angel.png" alt="Angel Statue">
->>>>>>> 9c96c2ba225c021c6772126468f5d9f51e6d50ba
         </div>
 
         <!-- RIGHT CONTENT -->
@@ -112,12 +61,8 @@
 
             <div class="forecast-card">
                 <form action="/predict" method="POST" style="display: flex; flex-direction: column; gap: 15px;">
-<<<<<<< HEAD
                     <input type="text" name="date" placeholder="Enter Year (e.g. 2025) or Date (YYYY-MM-DD)"
                         value="{{ selected_date if selected_date else '' }}" required>
-=======
-                    <input type="text" name="date" placeholder="Enter Year (e.g. 2025) or Date (YYYY-MM-DD)" value="{{ selected_date if selected_date else '' }}" required>
->>>>>>> 9c96c2ba225c021c6772126468f5d9f51e6d50ba
                     {% if error %}
                     <p style="color: #ff6b6b; font-size: 14px; margin-top: -5px; font-style: italic;">{{ error }}</p>
                     {% endif %}
@@ -134,38 +79,21 @@
                     <p>₹ {{ predicted_price }}</p>
                 </div>
 
-                <div class="stat-box">
-<<<<<<< HEAD
-                    <h3>Model Accuracy</h3>
-                    <p>{{ '%.2f'|format(accuracy_score * 100 if accuracy_score is not none else 0) }}%</p>
-=======
-                    <h3>Trend</h3>
-                    <p style="text-transform: capitalize;">{{ predicted_trend }}</p>
-                </div>
-
-                <div class="stat-box">
-                    <h3>Volatility</h3>
-                    <p>Moderate</p>
->>>>>>> 9c96c2ba225c021c6772126468f5d9f51e6d50ba
-                </div>
-
             </div>
-
-<<<<<<< HEAD
             <p class="forecast-text">
                 Gold price on <strong>{{ selected_date }}</strong> is projected at <strong>₹ {{ predicted_price
                     }}</strong> per gram.
-=======
-            <div class="trend-indicator {% if trend_direction == 'upward' %}trend-up{% else %}trend-down{% endif %}">
-                {% if trend_direction == 'upward' %}▲ Market Expected to Rise{% else %}▼ Market Expected to Decline{% endif %}
-            </div>
-
-            <p class="forecast-text">
-                Gold price on <strong>{{ selected_date }}</strong> is projected at <strong>₹ {{ predicted_price }}</strong> per gram.
-                The forecast indicates a <strong>{{ predicted_trend }}</strong> movement based on historical data modeling.
->>>>>>> 9c96c2ba225c021c6772126468f5d9f51e6d50ba
             </p>
             {% endif %}
+            <div class="model-plots" style="margin-top: 30px; display: flex; flex-direction: column; gap: 30px;">
+                <div class="model-plot">
+                    <h3
+                        style="color: #f5d76e; font-size: 1.2rem; margin-bottom: 15px; text-shadow: 0 0 10px rgba(245, 215, 110, 0.3);">
+                        Predicted Price Trend</h3>
+                    <img src="/plot_predict/{{ selected_date }}" alt="Prediction Trend Plot"
+                        style="width: 100%; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+                </div>
+            </div>
 
         </div>
 
@@ -175,30 +103,13 @@
 
 
 
-    <!-- ================= ABOUT SECTION ================= -->
 
-    <section class="about-section" id="About" style="display:none;">
-
-        <div class="about-content premium-box" style="margin: 0 auto; max-width: 850px;">
-            <h2 class="about-title">About Gold Price Prediction</h2>
-            <p class="about-text">
-                Our Gold Price Prediction platform leverages advanced machine learning algorithms to provide accurate
-                forecasts of gold prices. Using historical data and market trends, we help investors and enthusiasts
-                make informed decisions.
-            </p>
-            <p class="about-text" style="margin-bottom: 0;">
-                Features include real-time predictions. Built with <strong style="color: #f5d76e;">Flask</strong>
-                and powered by <strong style="color: #f5d76e;">scikit-learn</strong> models for reliable insights.
-            </p>
-        </div>
-
-    </section>
 
     <script>
         function showHome() {
 
             const hero = document.querySelector(".hero");
-            const homeSection = document.getElementById("homePage");
+            const forecastSection = document.getElementById("forecastSection");
 
             hero.classList.add("hide-hero");
 
@@ -206,12 +117,10 @@
 
                 hero.style.display = "none";
 
-                document.getElementById("homePage").style.display = "flex";
-                document.getElementById("forecastSection").style.display = "flex";
-                document.getElementById("About").style.display = "flex";
+                forecastSection.style.display = "flex";
                 document.getElementById("mainNav").style.display = "flex";
 
-                homeSection.scrollIntoView({
+                forecastSection.scrollIntoView({
                     behavior: "smooth"
                 });
 
@@ -232,15 +141,9 @@
 
     {% if predicted_price or error %}
     <script>
-<<<<<<< HEAD
         document.addEventListener("DOMContentLoaded", function () {
-=======
-        document.addEventListener("DOMContentLoaded", function() {
->>>>>>> 9c96c2ba225c021c6772126468f5d9f51e6d50ba
             document.querySelector(".hero").style.display = "none";
-            document.getElementById("homePage").style.display = "flex";
             document.getElementById("forecastSection").style.display = "flex";
-            document.getElementById("About").style.display = "flex";
             document.getElementById("mainNav").style.display = "flex";
 
             setTimeout(() => {
