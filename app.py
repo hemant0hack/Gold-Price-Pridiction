@@ -101,16 +101,12 @@ def predict_gold_price(date_input):
             date_obj = pd.to_datetime(date_input)
             print(f"[INFO] Parsed as date: {date_obj}")
         
-        # Calculate year weight (clamp between 0 and 1)
+        # Calculate year weight
         if min_year is None or max_year is None:
             print("[ERROR] min_year or max_year is None")
             return None, None
-        if date_obj.year <= min_year:
-            year_weight = 0
-        elif date_obj.year >= max_year:
-            year_weight = 1
-        else:
-            year_weight = (date_obj.year - min_year) / (max_year - min_year)
+        
+        year_weight = (date_obj.year - min_year) / (max_year - min_year)
         
         # Create input data
         input_data = pd.DataFrame([[
@@ -136,9 +132,12 @@ def predict_gold_price(date_input):
             if trend_model is None:
                 print("[ERROR] Trend model is not trained.")
                 return None, None
+            
+            years_ahead = date_obj.year - max_year
+            tw = min(0.9, 0.3 + years_ahead * 0.08)
             trend_value = trend_model.predict([[date_obj.year]])[0]
-            final_prediction = (model_prediction + trend_value) / 2
-            print(f"[INFO] Future blend — trend weight: 0.5, trend value: ₹{trend_value:.2f}")
+            final_prediction = (model_prediction * (1 - tw)) + (trend_value * tw)
+            print(f"[INFO] Future blend — trend weight: {tw:.2f}, trend value: ₹{trend_value:.2f}")
         else:
             final_prediction = model_prediction
 
@@ -312,7 +311,7 @@ def plot_predict(date):
     
     try:
         if len(str(date)) == 4 and str(date).isdigit():
-            date_obj = datetime(int(date), 1, 1)
+            date_obj = datetime(int(date), 6, 15)
         else:
             date_obj = pd.to_datetime(date)
     except:
@@ -331,16 +330,24 @@ def plot_predict(date):
 
     for yr in year_range_full:
         yw = (yr - min_year) / (max_year - min_year)
-        d = datetime(yr, 6, 15)
+        
+        if yr == target_year:
+            d = date_obj
+        else:
+            d = datetime(yr, 6, 15)
+            
         input_data = pd.DataFrame([[
-            yr, 6, 15, d.timetuple().tm_yday, 2, yw
+            yr, d.month, d.day, d.timetuple().tm_yday, (d.month - 1) // 3 + 1, yw
         ]], columns=['Year', 'Month', 'Day', 'DayOfYear', 'Quarter', 'YearWeight'])
+        
         pred = model.predict(input_data)[0]
+        
         if yr > max_year and trend_model is not None:
             years_ahead = yr - max_year
             tw = min(0.9, 0.3 + years_ahead * 0.08)
             trend_val = trend_model.predict([[yr]])[0]
             pred = (pred * (1 - tw)) + (trend_val * tw)
+            
         pred_prices.append(pred)
 
     # ---- PLOT ----
