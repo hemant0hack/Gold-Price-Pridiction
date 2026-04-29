@@ -31,7 +31,7 @@ body::after {
 }
 
 
-/* ================= HERO SECTION ================= */
+
 
 .hero {
   height: 100vh;
@@ -44,7 +44,6 @@ body::after {
   background: url("images/bg.png") no-repeat center center/cover;
 }
 
-/* Left Dark Gradient Overlay */
 .hero::before {
   content: "";
   position: absolute;
@@ -60,7 +59,6 @@ body::after {
   z-index: 0;
 }
 
-/* ================= LEFT CONTENT ================= */
 
 .hero-left {
   width: 50%;
@@ -68,7 +66,6 @@ body::after {
   z-index: 1;
 }
 
-/* 🔥 GRADIENT TITLE (100% WORKING) */
 @keyframes luxuryFloat {
   0% {
     transform: translateY(0px) rotate(0deg);
@@ -113,7 +110,6 @@ body::after {
   animation: goldShine 4s linear infinite;
 }
 
-/* GOLD SUBTITLE */
 .subtitle {
   margin-top: 20px;
   margin-left: 10px;
@@ -123,7 +119,6 @@ body::after {
   text-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
 }
 
-/* ================= GLASS CARD ================= */
 
 .glass-card {
   margin-top: 55px;
@@ -141,7 +136,6 @@ body::after {
   width: 400px;
 }
 
-/* INPUT FIELDS */
 .glass-card input {
   width: 100%;
   margin-bottom: 22px;
@@ -169,7 +163,6 @@ body::after {
 }
 
 
-/* GOLD BUTTON */
 .glass-card button {
   width: 100%;
   padding: 16px;
@@ -196,7 +189,6 @@ body::after {
 
 
 
-/* ================= RIGHT IMAGE ================= */
 
 .hero-right {
   width: 50%;
@@ -228,7 +220,6 @@ body::after {
   }
 }
 
-/* ===== HERO EXIT ANIMATION ===== */
 
 .hero.hide-hero {
   animation: heroExit 0.8s ease forwards;
@@ -247,9 +238,6 @@ body::after {
 }
 
 
-/* ================= HOME SECTION ================= */
-
-/* ===== CLEAN ORIGINAL HOME ===== */
 
 .home-section {
   min-height: 100vh;
@@ -260,7 +248,7 @@ body::after {
   background: black;
 }
 
-/* LEFT IMAGE */
+
 .home-left {
   width: 45%;
   display: flex;
@@ -274,7 +262,6 @@ body::after {
   object-fit: contain;
 }
 
-/* RIGHT CONTENT */
 .home-right {
   width: 55%;
   padding-left: 80px;
@@ -305,7 +292,6 @@ body::after {
 }
 
 
-/* GOLD TITLE */
 .home-title {
   font-family: 'Cinzel', serif;
   font-size: 60px;
@@ -322,14 +308,12 @@ body::after {
   -webkit-text-fill-color: transparent;
 }
 
-/* DATE */
 .home-date {
   color: #d4af37;
   font-size: 18px;
   margin-bottom: 45px;
 }
 
-/* PRICE CARD */
 .price-card {
   position: relative;
   background: linear-gradient(145deg,
@@ -344,7 +328,6 @@ body::after {
   font-size: 16px;
 }
 
-/* DESCRIPTION */
 .home-description {
   font-style: italic;
   color: #ddd;

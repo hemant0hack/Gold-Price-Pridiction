@@ -23,7 +23,7 @@ app = Flask(__name__)
 def images(filename):
     return send_from_directory(os.path.join(app.root_path, 'images'), filename)
 
-# Global variables for models
+
 model = None
 trend_model = None
 gold_data = None
@@ -37,44 +37,44 @@ def train_models():
     global model, trend_model, gold_data, min_year, max_year, model_accuracy, model_mape
     
     try:
-        # Load data
+       
         gold_data = pd.read_csv("Gold Price.csv")
         
-        # Convert Date to datetime
+       
         gold_data['Date'] = pd.to_datetime(gold_data['Date'])
         
-        # Sort by date
+       
         gold_data = gold_data.sort_values('Date')
         
-        # Create features
+       
         gold_data['Year'] = gold_data['Date'].dt.year
         gold_data['Month'] = gold_data['Date'].dt.month
         gold_data['Day'] = gold_data['Date'].dt.day
         gold_data['DayOfYear'] = gold_data['Date'].dt.dayofyear
         gold_data['Quarter'] = gold_data['Date'].dt.quarter
         
-        # Calculate yearly average prices for trend
+       
         yearly_avg = gold_data.groupby('Year')['GLD'].mean().reset_index()
         
-        # Train linear trend model
+       
         trend_model = LinearRegression()
         trend_model.fit(yearly_avg[['Year']], yearly_avg['GLD'])
         
-        # Add year weight
+       
         max_year = gold_data['Year'].max()
         min_year = gold_data['Year'].min()
         gold_data['YearWeight'] = (gold_data['Year'] - min_year) / (max_year - min_year)
         
-        # Features for training
+       
         X = gold_data[['Year', 'Month', 'Day', 'DayOfYear', 'Quarter', 'YearWeight']]
         y = gold_data['GLD']
         
-        # Train model
+       
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         model = RandomForestRegressor(n_estimators=100, random_state=42)
         model.fit(X_train, y_train)
 
-        # Evaluate model performance
+       
         y_pred = model.predict(X_test)
         model_r2 = model.score(X_test, y_test)
         model_mape = np.mean(np.abs((y_test - y_pred) / y_test)) * 100
@@ -93,7 +93,7 @@ def predict_gold_price(date_input):
     try:
         print(f"[INFO] Predicting for: {date_input}")
         
-        # Parse input
+        
         if len(str(date_input)) == 4 and str(date_input).isdigit():
             date_obj = datetime(int(date_input), 6, 15)
             print(f"[INFO] Parsed as year: {date_obj.year}")
@@ -101,14 +101,14 @@ def predict_gold_price(date_input):
             date_obj = pd.to_datetime(date_input)
             print(f"[INFO] Parsed as date: {date_obj}")
         
-        # Calculate year weight
+        
         if min_year is None or max_year is None:
             print("[ERROR] min_year or max_year is None")
             return None, None
         
         year_weight = (date_obj.year - min_year) / (max_year - min_year)
         
-        # Create input data
+        
         input_data = pd.DataFrame([[
             date_obj.year,
             date_obj.month,
@@ -120,14 +120,14 @@ def predict_gold_price(date_input):
         
         print(f"[INFO] Input features: {input_data.values[0]}")
         
-        # Get prediction
+        
         if model is None:
             print("[ERROR] Model is not trained.")
             return None, None
         model_prediction = model.predict(input_data)[0]
         print(f"[INFO] Model prediction: ₹{model_prediction:.2f}")
 
-        # Apply trend adjustment for future years
+        
         if date_obj.year > max_year:
             if trend_model is None:
                 print("[ERROR] Trend model is not trained.")
@@ -148,12 +148,11 @@ def predict_gold_price(date_input):
         print(f"[ERROR] Prediction error: {e}")
         return None, None
 
-# Train models when server starts
+
 train_models()
 
-# ============================================
-# ROUTES
-# ============================================
+
+
 
 @app.route('/')
 def home():
@@ -176,7 +175,7 @@ def home():
 def predict():
     """Handle prediction request"""
     try:
-        # Get date from form
+        
         date_input = request.form.get('date')
 
         if not date_input:
@@ -276,10 +275,10 @@ def plot_graph():
     
     fig, ax = plt.subplots(figsize=(10, 5))
     
-    # Plot historical price
+    
     ax.plot(gold_data['Date'], gold_data['GLD'], label='Historical GLD Price', color='#f5d76e')
     
-    # Plot generated fit by model
+    
     X_all = gold_data[['Year', 'Month', 'Day', 'DayOfYear', 'Quarter', 'YearWeight']]
     y_pred_all = model.predict(X_all)
     ax.plot(gold_data['Date'], y_pred_all, label='Random Forest Fit', color='#ffffff', alpha=0.5, linestyle='--')
@@ -289,7 +288,7 @@ def plot_graph():
     ax.set_ylabel("Price (INR)", color='white')
     ax.legend(facecolor='#1e1e1e', edgecolor='white', labelcolor='white')
     
-    # Dark theme styling
+    
     fig.patch.set_facecolor('#1a1a1a')
     ax.set_facecolor('#1a1a1a')
     ax.tick_params(colors='white')
@@ -319,12 +318,12 @@ def plot_predict(date):
     
     target_year = date_obj.year
 
-    # ---- HISTORICAL: yearly average from dataset ----
+    
     yearly_avg = gold_data.groupby('Year')['GLD'].mean()
     hist_years = list(yearly_avg.index)
     hist_prices = list(yearly_avg.values)
 
-    # ---- PREDICTED: model prediction for each year min_year → target_year ----
+    
     year_range_full = list(range(min_year, target_year + 1))
     pred_prices = []
 
@@ -350,14 +349,14 @@ def plot_predict(date):
             
         pred_prices.append(pred)
 
-    # ---- PLOT ----
+    
     fig, ax = plt.subplots(figsize=(12, 5))
     ax.plot(hist_years, hist_prices, marker='o', color='#888888',
             linestyle='-', linewidth=2, markersize=5, label='Historical Avg')
     ax.plot(year_range_full, pred_prices, marker='o', color='#f5d76e',
             linestyle='-', linewidth=2, markersize=5, label='Model Prediction')
 
-    # Highlight the target year
+    
     ax.scatter([target_year], [pred_prices[-1]], color='white', edgecolor='#f5d76e',
                s=180, zorder=5, linewidth=2)
     ax.annotate(f"₹{pred_prices[-1]:,.2f}",
@@ -366,7 +365,7 @@ def plot_predict(date):
                 ha='center', color='white', fontsize=10, fontweight='bold',
                 bbox=dict(boxstyle="round,pad=0.4", fc="#111111", ec="#f5d76e", lw=1.5))
 
-    # Dashed vertical line at max_year (historical ends, forecast begins)
+    
     if target_year > max_year:
         ax.axvline(x=max_year, color='gray', linestyle='--', alpha=0.5, linewidth=1)
         ax.text(max_year + 0.1, min(pred_prices) * 0.995, 'Forecast →',
