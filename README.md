@@ -4,6 +4,16 @@ A premium web application that predicts gold prices using advanced Machine Learn
 
 ---
 
+## 📸 Screenshots
+
+### Home Page
+![Gold Price Prediction - Home Page](/images/screenshot.png)
+
+### Prediction Results
+![Gold Price Prediction - Results](/images/Screenshot2.png/)
+
+---
+
 ## 📋 Table of Contents
 
 - [Overview](#overview)
@@ -273,18 +283,20 @@ These metrics are displayed on the web interface for transparency.
 
 ---
 
-## 🎨 Screenshots
+## 🎨 UI/UX Features
 
-### Home Page
-- Elegant dark theme with golden accents
-- Hero section with call-to-action
-- Professional gradient backgrounds
+### Design Elements
+- **Elegant dark theme** with golden accents
+- **Hero section** with compelling call-to-action
+- **Professional gradient backgrounds** and glass-morphism effects
+- **Responsive layout** that works on all devices
 
-### Prediction Section
-- Input form for date/year entry
-- Real-time prediction results
-- Trend direction indicators (Bullish/Bearish)
-- Price trend visualization charts
+### Interactive Components
+- **Input form** for flexible date/year entry
+- **Real-time results** with instant predictions
+- **Trend indicators** showing Bullish/Bearish directions
+- **Dynamic charts** visualizing price trends
+- **Model metrics** displaying accuracy and MAPE
 
 ---
 
