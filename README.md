@@ -4,8 +4,6 @@ A premium web application that predicts gold prices using advanced Machine Learn
 
 ---
 
-## 📸 Screenshots
-
 ### Home Page
 ![Gold Price Prediction - Home Page](/images/Screenshot.png/)
 
